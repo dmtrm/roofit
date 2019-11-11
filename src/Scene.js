@@ -51,9 +51,9 @@ class Scene extends Component {
       new THREE.Vector3(fRBottomLeftOffset,  -100, this.state.a + 100),  // 6
       new THREE.Vector3(fRBottomRightOffset,  -100, this.state.a + 100),  // 7
       new THREE.Vector3(fRTopOffset,  this.state.smallRoofHeight - 100, this.state.a + 100),  // 8
-      new THREE.Vector3(fRBottomLeftOffset,  -100, 0),  // 9
-      new THREE.Vector3(fRTopOffset,  this.state.smallRoofHeight - 100, 0),  // 10
-      new THREE.Vector3(fRBottomRightOffset,  -100, 0),  // 11
+      new THREE.Vector3(fRBottomLeftOffset,  -100, topDepthOffset),  // 9
+      new THREE.Vector3(fRTopOffset,  this.state.smallRoofHeight - 100, topDepthOffset),  // 10
+      new THREE.Vector3(fRBottomRightOffset,  -100, topDepthOffset),  // 11
     ];
     this.geometry.vertices = vertices;
     this.geometry.verticesNeedUpdate = true;
