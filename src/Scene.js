@@ -258,7 +258,7 @@ class Scene extends Component {
       <Container fluid className="mt-5 pl-5 pr-5">
         <Row>
           <Col md="6">
-              <img className="pb-5" src="/images/Rooftype_big_4.jpg" width="700" style={{float: 'left', top: 0, right: 0}} />
+              <img className="pb-5" src="./images/Rooftype_big_4.jpg" width="700" style={{float: 'left', top: 0, right: 0}} />
               <FormGroup className='w-50 pr-5 d-inline-block'>
                 <Input name='a' type="number" placeholder="Enter a" onChange={(e) => { this.setState({ a: Number(e.target.value) }); }}/>
               </FormGroup>
