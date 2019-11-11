@@ -1,6 +1,8 @@
-import React, { Component } from 'react'
-import * as THREE from 'three'
-import OrbitControls from 'three-orbitcontrols'
+import React, { Component } from 'react';
+import * as THREE from 'three';
+import OrbitControls from 'three-orbitcontrols';
+import { Button, Form, FormGroup, Label, Input, FormText } from 'reactstrap';
+import { Container, Row, Col } from 'reactstrap';
 
 class Scene extends Component {
   constructor(props) {
@@ -160,58 +162,45 @@ class Scene extends Component {
           text.position.x = cube.geometry.vertices[i].x;
           text.position.y = cube.geometry.vertices[i].y;
           text.position.z = cube.geometry.vertices[i].z;
-          // text.rotation = camera.rotation;
-          // text.rotation = camera.rotation;
           scene.add(text);
 
         }
       });
     }
 
-    const axesHelper = new THREE.AxesHelper( 200 );
-    scene.add(axesHelper);
+    // adding axes info
+    const showAxesInfo = false;
+    if (showAxesInfo) {
+      const axesHelper = new THREE.AxesHelper( 200 );
+      scene.add(axesHelper);
 
-    // grid
-	var gridXZ = new THREE.GridHelper(100, 10, new THREE.Color(0x006600), new THREE.Color(0x006600) );
-	// gridXZ.position.set( 100,0,100 );
-	scene.add(gridXZ);
+      // grid
+      var gridXZ = new THREE.GridHelper(100, 10, new THREE.Color(0x006600), new THREE.Color(0x006600) );
+      // gridXZ.position.set( 100,0,100 );
+      scene.add(gridXZ);
 
-	var gridXY = new THREE.GridHelper(100, 10, new THREE.Color(0x000066), new THREE.Color(0x000066));
-	//gridXY.position.set( 100,100,0 );
-	gridXY.rotation.x = Math.PI/2;
-	scene.add(gridXY);
-	var gridYZ = new THREE.GridHelper(100, 10, new THREE.Color(0x660000), new THREE.Color(0x660000));
-	// gridYZ.position.set( 0,100,100 );
-	gridYZ.rotation.z = Math.PI/2;
-	scene.add(gridYZ);
-
-    // light
-	// const pointLight = new THREE.PointLight(0xffffff);
-	// pointLight.position.set(100,250,100);
-	// scene.add(pointLight);
+      var gridXY = new THREE.GridHelper(100, 10, new THREE.Color(0x000066), new THREE.Color(0x000066));
+      gridXY.rotation.x = Math.PI/2;
+      scene.add(gridXY);
+      var gridYZ = new THREE.GridHelper(100, 10, new THREE.Color(0x660000), new THREE.Color(0x660000));
+      gridYZ.rotation.z = Math.PI/2;
+      scene.add(gridYZ);
+    }
 
     const directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5);
     scene.add( directionalLight );
-
-	// // skybox
-	// const skyBoxGeometry = new THREE.BoxGeometry( 10000, 10000, 10000 );
-	// const skyBoxMaterial = new THREE.MeshBasicMaterial( { color: 0x9999ff, side: THREE.BackSide } );
-	// const skyBox = new THREE.Mesh( skyBoxGeometry, skyBoxMaterial );
-	// scene.add(skyBox);
 
     const loaderTexture = new THREE.CubeTextureLoader();
     const texture = loaderTexture.load( [
         'skybox/meadow_ft.jpg', 'skybox/meadow_bk.jpg', 'skybox/meadow_up.jpg', 'skybox/meadow_dn.jpg', 'skybox/meadow_rt.jpg', 'skybox/meadow_lf.jpg',
     ] );
 
-    // scene.background = new THREE.Color(0x9999ff);
     scene.background = texture;
 
 
 	var light = new THREE.AmbientLight( 0x404040 ); // soft white light
     scene.add( light );
 
-    // renderer.setClearColor('#000000')
     renderer.setSize(width, height)
 
     this.scene = scene
@@ -223,23 +212,11 @@ class Scene extends Component {
     this.mount.appendChild(this.renderer.domElement)
     // this.controls = new THREE.OrbitControls( camera, this.renderer.domElement );
     this.controls = new OrbitControls( camera, this.renderer.domElement );
-    // this.start()
 
-    // this.cube.rotation.x += 0.3
-    // this.cube.rotation.y += 0.5
-
-    // this.cube.rotation.x += 0.3
-    // this.cube.rotation.y += 0.5
-
-    // this.renderScene()
     this.start()
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
-      console.log('scale ', this.state);
-      // this.cube.scale.x = this.state.width;
-      // this.cube.scale.y = this.state.height;
-      // this.cube.scale.z = this.state.depth;
       this.setVertices();
       // compute Normals
       this.geometry.computeVertexNormals();
@@ -264,8 +241,6 @@ class Scene extends Component {
   }
 
   animate() {
-    // this.cube.rotation.x += 0.01
-    // this.cube.rotation.y += 0.01
 
     this.frameId = window.requestAnimationFrame(this.animate)
     this.controls.update();
@@ -280,23 +255,50 @@ class Scene extends Component {
 
   render() {
     return (
-      <div>
-        <div
-          style={{ width: '800px', height: '800px' }}
-          ref={(mount) => { this.mount = mount }}
-        />
-        <img src="https://www.karukatus.ee/wp-content/uploads/2018/10/Rooftype_big_4.jpg" width="700" style={{position: 'absolute', top: 0, right: 0}} />
-        <input name='a' type="number" placeholder="Enter a" onChange={(e) => { this.setState({ a: Number(e.target.value) }); }}/>
-        <input name='b' placeholder="Enter b" onChange={(e) => { this.setState({ b: Number(e.target.value) }); }}/>
-        <input name='c' placeholder="Enter c" onChange={(e) => { this.setState({ c: Number(e.target.value) }); }} />
-        <input name='d' type="number" placeholder="Enter d" onChange={(e) => { this.setState({ d: Number(e.target.value) }); }}/>
-        <input name='e' disabled placeholder="Enter e" onChange={(e) => { this.setState({ e: Number(e.target.value) }); }}/>
-        <input name='f' placeholder="Enter f" onChange={(e) => { this.setState({ f: Number(e.target.value) }); }} />
-        <input name='g' type="number" placeholder="Enter g" onChange={(e) => { this.setState({ g: Number(e.target.value) }); }}/>
-        <input name='h' disabled placeholder="Enter h" onChange={(e) => { this.setState({ h: Number(e.target.value) }); }}/>
-        <input name='bigRoofHeight' type="number" placeholder="Enter big roof height" onChange={(e) => { this.setState({ bigRoofHeight: Number(e.target.value) }); }}/>
-        <input name='smallRoofHeight' placeholder="Enter small roof height" onChange={(e) => { this.setState({ smallRoofHeight: Number(e.target.value) }); }}/>
-      </div>
+      <Container fluid className="mt-5 pl-5 pr-5">
+        <Row>
+          <Col md="6">
+              <img className="pb-5" src="/images/Rooftype_big_4.jpg" width="700" style={{float: 'left', top: 0, right: 0}} />
+              <FormGroup className='w-50 pr-5 d-inline-block'>
+                <Input name='a' type="number" placeholder="Enter a" onChange={(e) => { this.setState({ a: Number(e.target.value) }); }}/>
+              </FormGroup>
+              <FormGroup className='w-50 pr-5 d-inline-block'>
+                <Input name='b' placeholder="Enter b" onChange={(e) => { this.setState({ b: Number(e.target.value) }); }}/>
+              </FormGroup>
+              <FormGroup className='w-50 pr-5 d-inline-block'>
+                <Input name='c' placeholder="Enter c" onChange={(e) => { this.setState({ c: Number(e.target.value) }); }} />
+              </FormGroup>
+              <FormGroup className='w-50 pr-5 d-inline-block'>
+                <Input name='d' type="number" placeholder="Enter d" onChange={(e) => { this.setState({ d: Number(e.target.value) }); }}/>
+              </FormGroup>
+              <FormGroup className='w-50 pr-5 d-inline-block'>
+                <Input name='e' disabled placeholder="Enter e" onChange={(e) => { this.setState({ e: Number(e.target.value) }); }}/>
+              </FormGroup>
+              <FormGroup className='w-50 pr-5 d-inline-block'>
+                <Input name='f' placeholder="Enter f" onChange={(e) => { this.setState({ f: Number(e.target.value) }); }} />
+              </FormGroup>
+              <FormGroup className='w-50 pr-5 d-inline-block'>
+                <Input name='g' disabled type="number" placeholder="Enter g" onChange={(e) => { this.setState({ g: Number(e.target.value) }); }}/>
+              </FormGroup>
+              <FormGroup className='w-50 pr-5 d-inline-block'>
+                <Input name='h' disabled placeholder="Enter h" onChange={(e) => { this.setState({ h: Number(e.target.value) }); }}/>
+              </FormGroup>
+              <FormGroup className='w-50 pr-5 d-inline-block'>
+                <Input name='bigRoofHeight' type="number" placeholder="Enter big roof height" onChange={(e) => { this.setState({ bigRoofHeight: Number(e.target.value) }); }}/>
+              </FormGroup>
+              <FormGroup className='w-50 pr-5 d-inline-block'>
+                <Input name='smallRoofHeight' placeholder="Enter small roof height" onChange={(e) => { this.setState({ smallRoofHeight: Number(e.target.value) }); }}/>
+              </FormGroup>
+          </Col>
+          <Col md="6">
+            <div
+                md="6"
+                style={{ width: '800px', height: '800px', float: 'right' }}
+                ref={(mount) => { this.mount = mount }}
+            />
+          </Col>
+        </Row>
+      </Container>
     )
   }
 }
