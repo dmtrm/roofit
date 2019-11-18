@@ -51,9 +51,14 @@ class Scene extends Component {
       new THREE.Vector3(fRBottomLeftOffset,  -100, this.state.a + 100),  // 6
       new THREE.Vector3(fRBottomRightOffset,  -100, this.state.a + 100),  // 7
       new THREE.Vector3(fRTopOffset,  this.state.smallRoofHeight - 100, this.state.a + 100),  // 8
-      new THREE.Vector3(fRBottomLeftOffset,  -100, 102),  // 9
-      new THREE.Vector3(fRTopOffset,  this.state.smallRoofHeight - 100, topDepthOffset + 2),  // 10
-      new THREE.Vector3(fRBottomRightOffset,  -100, 102),  // 11
+      new THREE.Vector3(fRBottomLeftOffset,  -100, 100),  // 9
+      new THREE.Vector3(fRTopOffset,  this.state.smallRoofHeight - 100, topDepthOffset),  // 10
+      new THREE.Vector3(fRBottomRightOffset,  -100, 100),  // 11
+
+      // hacky way to display some faces
+      new THREE.Vector3(fRBottomLeftOffset,  -100, 102),  // 12
+      new THREE.Vector3(fRTopOffset,  this.state.smallRoofHeight - 100, topDepthOffset+2),  // 13
+      new THREE.Vector3(fRBottomRightOffset,  -100, 102),  // 14
     ];
     this.geometry.vertices = vertices;
     this.geometry.verticesNeedUpdate = true;
@@ -128,6 +133,9 @@ class Scene extends Component {
 
       // back
       new THREE.Face3(11, 10, 9),
+
+      // hacky way to display some faces
+       new THREE.Face3(12, 13, 14),
     );
 
        // compute Normals
@@ -141,7 +149,7 @@ class Scene extends Component {
     camera.position.z = 4
     this.scene.add(cube)
 
-    // adding vertices info
+    // adding vertices info. TODO: fix
     const showVerticesInfo = true;
     if (showVerticesInfo) {
       const loader = new THREE.FontLoader();
