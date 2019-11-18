@@ -51,9 +51,9 @@ class Scene extends Component {
       new THREE.Vector3(fRBottomLeftOffset,  -100, this.state.a + 100),  // 6
       new THREE.Vector3(fRBottomRightOffset,  -100, this.state.a + 100),  // 7
       new THREE.Vector3(fRTopOffset,  this.state.smallRoofHeight - 100, this.state.a + 100),  // 8
-      new THREE.Vector3(fRBottomLeftOffset,  -100, topDepthOffset),  // 9
-      new THREE.Vector3(fRTopOffset,  this.state.smallRoofHeight - 100, topDepthOffset),  // 10
-      new THREE.Vector3(fRBottomRightOffset,  -100, topDepthOffset),  // 11
+      new THREE.Vector3(fRBottomLeftOffset,  -100, 102),  // 9
+      new THREE.Vector3(fRTopOffset,  this.state.smallRoofHeight - 100, topDepthOffset + 2),  // 10
+      new THREE.Vector3(fRBottomRightOffset,  -100, 102),  // 11
     ];
     this.geometry.vertices = vertices;
     this.geometry.verticesNeedUpdate = true;
@@ -63,7 +63,7 @@ class Scene extends Component {
     const width = this.mount.clientWidth
     const height = this.mount.clientHeight
 
-    const scene = new THREE.Scene()
+    this.scene = new THREE.Scene()
     const camera = new THREE.PerspectiveCamera(
       75,
       width / height,
@@ -125,6 +125,9 @@ class Scene extends Component {
       // left
       new THREE.Face3(6, 8, 10),
       new THREE.Face3(6, 10, 9),
+
+      // back
+      new THREE.Face3(11, 10, 9),
     );
 
        // compute Normals
@@ -134,18 +137,12 @@ class Scene extends Component {
     this.geometry.normalize();
 
     const cube = new THREE.Mesh(this.geometry, material)
-
-    const edges = new THREE.EdgesGeometry( this.geometry );
-    const line = new THREE.LineSegments( edges, new THREE.LineBasicMaterial( { color: 'black' } ) );
-
-    scene.add(line);
-
     // camera.position.z = 4
     camera.position.z = 4
-    scene.add(cube)
+    this.scene.add(cube)
 
     // adding vertices info
-    const showVerticesInfo = false;
+    const showVerticesInfo = true;
     if (showVerticesInfo) {
       const loader = new THREE.FontLoader();
       loader.load('//raw.githubusercontent.com/mrdoob/three.js/master/examples/fonts/helvetiker_regular.typeface.json', function (font) {
@@ -167,7 +164,7 @@ class Scene extends Component {
           text.position.x = cube.geometry.vertices[i].x;
           text.position.y = cube.geometry.vertices[i].y;
           text.position.z = cube.geometry.vertices[i].z;
-          scene.add(text);
+          this.scene.add(text);
 
         }
       });
@@ -177,38 +174,38 @@ class Scene extends Component {
     const showAxesInfo = false;
     if (showAxesInfo) {
       const axesHelper = new THREE.AxesHelper( 200 );
-      scene.add(axesHelper);
+      this.scene.add(axesHelper);
 
       // grid
       var gridXZ = new THREE.GridHelper(100, 10, new THREE.Color(0x006600), new THREE.Color(0x006600) );
       // gridXZ.position.set( 100,0,100 );
-      scene.add(gridXZ);
+      this.scene.add(gridXZ);
 
       var gridXY = new THREE.GridHelper(100, 10, new THREE.Color(0x000066), new THREE.Color(0x000066));
       gridXY.rotation.x = Math.PI/2;
-      scene.add(gridXY);
+      this.scene.add(gridXY);
       var gridYZ = new THREE.GridHelper(100, 10, new THREE.Color(0x660000), new THREE.Color(0x660000));
       gridYZ.rotation.z = Math.PI/2;
-      scene.add(gridYZ);
+      this.scene.add(gridYZ);
     }
 
     const directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5);
-    scene.add( directionalLight );
+    this.scene.add( directionalLight );
 
     const loaderTexture = new THREE.CubeTextureLoader();
     const texture = loaderTexture.load( [
         'skybox/meadow_ft.jpg', 'skybox/meadow_bk.jpg', 'skybox/meadow_up.jpg', 'skybox/meadow_dn.jpg', 'skybox/meadow_rt.jpg', 'skybox/meadow_lf.jpg',
     ] );
 
-    scene.background = texture;
+    this.scene.background = texture;
 
 
 	var light = new THREE.AmbientLight( 0x404040 ); // soft white light
-    scene.add( light );
+    this.scene.add( light );
 
     renderer.setSize(width, height)
 
-    this.scene = scene
+    // this.scene = scene
     this.camera = camera
     this.renderer = renderer
     this.material = material
@@ -251,6 +248,13 @@ class Scene extends Component {
     this.controls.update();
     this.cube.geometry.verticesNeedUpdate = true;
     this.cube.geometry.elementsNeedUpdate = true;
+    const oldEdges = this.scene.getObjectByName('edges');
+    this.scene.remove(oldEdges);
+    const edges = new THREE.EdgesGeometry( this.geometry);
+    const line = new THREE.LineSegments( edges, new THREE.LineBasicMaterial( { color: 'black', linewidth: 3, linejoin: 'bevel' } ) );
+    line.name = 'edges';
+    this.scene.add(line);
+
     this.renderScene()
   }
 
