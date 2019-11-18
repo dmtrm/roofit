@@ -135,6 +135,11 @@ class Scene extends Component {
 
     const cube = new THREE.Mesh(this.geometry, material)
 
+    const edges = new THREE.EdgesGeometry( this.geometry );
+    const line = new THREE.LineSegments( edges, new THREE.LineBasicMaterial( { color: 'black' } ) );
+
+    scene.add(line);
+
     // camera.position.z = 4
     camera.position.z = 4
     scene.add(cube)
