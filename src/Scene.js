@@ -8,9 +8,9 @@ class Scene extends Component {
   constructor(props) {
     super(props)
 
-    this.start = this.start.bind(this)
-    this.stop = this.stop.bind(this)
-    this.animate = this.animate.bind(this)
+    this.start = this.start.bind(this);
+    this.stop = this.stop.bind(this);
+    this.animate = this.animate.bind(this);
     this.state = {
        width: 100,
        height: 100,
@@ -22,6 +22,9 @@ class Scene extends Component {
        f: 100,
        bigRoofHeight: 200,
        smallRoofHeight: 200,
+
+       // show info toggles about geometry
+       wireframe: false,
     }
   }
 
@@ -36,7 +39,7 @@ class Scene extends Component {
     const fRBottomLeftOffset = this.state.c - 100;
     const fRBottomRightOffset = fRBottomLeftOffset + this.state.d * 2;
     const fRTopOffset = fRBottomLeftOffset + this.state.d;
-    // const cOffset = this.state.b - this.state.c - 1;
+
     const vertices = [
       new THREE.Vector3(-100, -100,  100),  // 0
       new THREE.Vector3( this.state.b - 100, -100,  100),  // 1
@@ -44,8 +47,6 @@ class Scene extends Component {
       new THREE.Vector3( this.state.b - 100,  this.state.bigRoofHeight - 100,  topDepthOffset),  // 3
       new THREE.Vector3(-100, -100, bottomDepthOffset),  // 4
       new THREE.Vector3( this.state.b - 100, -100, bottomDepthOffset),  // 5
-      // new THREE.Vector3(-1,  1, -1),  // 6
-      // new THREE.Vector3( 1,  1, -1),  // 7
 
       // front pyramid
       new THREE.Vector3(fRBottomLeftOffset,  -100, this.state.a + 100),  // 6
@@ -65,8 +66,8 @@ class Scene extends Component {
   }
 
   componentDidMount() {
-    const width = this.mount.clientWidth
-    const height = this.mount.clientHeight
+    const width = this.mount.clientWidth;
+    const height = this.mount.clientHeight;
 
     this.scene = new THREE.Scene()
     const camera = new THREE.PerspectiveCamera(
@@ -74,25 +75,16 @@ class Scene extends Component {
       width / height,
       0.1,
       1000
-    )
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true  })
-    const material = new THREE.MeshBasicMaterial({ color: 'lightslategray' })
+    );
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true  });
+    const material = new THREE.MeshBasicMaterial({ color: 'lightslategray' });
     const colors = [
     new THREE.Color(0xff0000),
     new THREE.Color(0x00ff00),
     new THREE.Color(0x0000ff)];
-    const normal = new THREE.Vector3(0, 0, 1);
-    this.geometry = new THREE.Geometry()
 
-    /*
-         6----7
-        /|   /|
-       2----3 |
-       | |  | |
-       | 4--|-5
-       |/   |/
-       0----1
-  */
+
+    this.geometry = new THREE.Geometry()
 
     this.setVertices();
 
@@ -101,18 +93,14 @@ class Scene extends Component {
       new THREE.Face3(0, 3, 2),
       new THREE.Face3(0, 1, 3),
       // right
-     // new THREE.Face3(1, 7, 3),
       new THREE.Face3(1, 5, 3),
       // back
       // new THREE.Face3(4, 5, 7),
       new THREE.Face3(5, 4, 3),
       new THREE.Face3(4, 2, 3),
-      // left
+
       // new THREE.Face3(4, 2, 6),
       new THREE.Face3(4, 0, 2),
-      // top
-      // new THREE.Face3(2, 7, 6),
-      // new THREE.Face3(2, 3, 7),
       // bottom
       new THREE.Face3(4, 1, 0),
       new THREE.Face3(4, 5, 1),
@@ -144,10 +132,9 @@ class Scene extends Component {
     // normalize the geometry
     this.geometry.normalize();
 
-    const cube = new THREE.Mesh(this.geometry, material)
-    // camera.position.z = 4
-    camera.position.z = 4
-    this.scene.add(cube)
+    const roof = new THREE.Mesh(this.geometry, material);
+    camera.position.z = 4;
+    this.scene.add(roof);
 
     // adding vertices info. TODO: fix
     const showVerticesInfo = true;
@@ -155,8 +142,8 @@ class Scene extends Component {
       const loader = new THREE.FontLoader();
       loader.load('//raw.githubusercontent.com/mrdoob/three.js/master/examples/fonts/helvetiker_regular.typeface.json', function (font) {
         console.log(font);
-        for (let i = 0; i < cube.geometry.vertices.length; i++) {
-          // console.log('verice!!!! ', cube.geometry.vertices[i]);
+        for (let i = 0; i < roof.geometry.vertices.length; i++) {
+          // console.log('verice!!!! ', this.roof.geometry.vertices[i]);
           console.log('i ', i);
           const textGeo = new THREE.TextGeometry(`${i}`, {
             size: 0.1,
@@ -169,9 +156,9 @@ class Scene extends Component {
           const textMaterial = new THREE.MeshLambertMaterial({color: 0xFF00FF});
           const text = new THREE.Mesh(textGeo, textMaterial);
 
-          text.position.x = cube.geometry.vertices[i].x;
-          text.position.y = cube.geometry.vertices[i].y;
-          text.position.z = cube.geometry.vertices[i].z;
+          text.position.x = roof.geometry.vertices[i].x;
+          text.position.y = roof.geometry.vertices[i].y;
+          text.position.z = roof.geometry.vertices[i].z;
           this.scene.add(text);
 
         }
@@ -186,14 +173,15 @@ class Scene extends Component {
 
       // grid
       var gridXZ = new THREE.GridHelper(100, 10, new THREE.Color(0x006600), new THREE.Color(0x006600) );
-      // gridXZ.position.set( 100,0,100 );
       this.scene.add(gridXZ);
 
       var gridXY = new THREE.GridHelper(100, 10, new THREE.Color(0x000066), new THREE.Color(0x000066));
       gridXY.rotation.x = Math.PI/2;
+
       this.scene.add(gridXY);
       var gridYZ = new THREE.GridHelper(100, 10, new THREE.Color(0x660000), new THREE.Color(0x660000));
       gridYZ.rotation.z = Math.PI/2;
+
       this.scene.add(gridYZ);
     }
 
@@ -214,14 +202,13 @@ class Scene extends Component {
     renderer.setSize(width, height)
 
     // this.scene = scene
-    this.camera = camera
-    this.renderer = renderer
-    this.material = material
-    this.cube = cube
+    this.camera = camera;
+    this.renderer = renderer;
+    this.material = material;
+    this.roof = roof;
 
-    this.mount.appendChild(this.renderer.domElement)
-    // this.controls = new THREE.OrbitControls( camera, this.renderer.domElement );
-    this.controls = new OrbitControls( camera, this.renderer.domElement );
+    this.mount.appendChild(this.renderer.domElement);
+    this.controls = new OrbitControls( camera, this.renderer.domElement);
 
     this.start()
   }
@@ -236,26 +223,28 @@ class Scene extends Component {
   }
 
   componentWillUnmount() {
-    this.stop()
-    this.mount.removeChild(this.renderer.domElement)
+    this.stop();
+    this.mount.removeChild(this.renderer.domElement);
   }
 
   start() {
     if (!this.frameId) {
-      this.frameId = requestAnimationFrame(this.animate)
+      this.frameId = requestAnimationFrame(this.animate);
     }
   }
 
   stop() {
-    cancelAnimationFrame(this.frameId)
+    cancelAnimationFrame(this.frameId);
   }
 
   animate() {
 
-    this.frameId = window.requestAnimationFrame(this.animate)
+    this.frameId = window.requestAnimationFrame(this.animate);
     this.controls.update();
-    this.cube.geometry.verticesNeedUpdate = true;
-    this.cube.geometry.elementsNeedUpdate = true;
+    this.roof.geometry.verticesNeedUpdate = true;
+    this.roof.geometry.elementsNeedUpdate = true;
+    this.material.wireframe = this.state.wireframe;
+    this.material.color.setColorName(this.state.wireframe ? 'black' : 'lightslategray');
     const oldEdges = this.scene.getObjectByName('edges');
     this.scene.remove(oldEdges);
     const edges = new THREE.EdgesGeometry( this.geometry);
@@ -314,6 +303,17 @@ class Scene extends Component {
                 ref={(mount) => { this.mount = mount }}
             />
           </Col>
+        </Row>
+        <Row>
+            <Col md="12">
+                <h1>Info</h1>
+                <FormGroup check>
+                    <Label check>
+                        <Input name="wireframe" type="checkbox" id="wireframe" onChange={(e) => { this.setState({ wireframe: e.target.checked })}} />
+                        Wireframe
+                    </Label>
+                </FormGroup>
+            </Col>
         </Row>
       </Container>
     )
