@@ -4,6 +4,7 @@ import OrbitControls from 'three-orbitcontrols';
 import { Button, Form, FormGroup, Label, Input, FormText } from 'reactstrap';
 import { Container, Row, Col } from 'reactstrap';
 
+
 class Scene extends Component {
   constructor(props) {
     super(props)
@@ -25,6 +26,7 @@ class Scene extends Component {
 
        // show info toggles about geometry
        wireframe: false,
+       vertices: true,
     }
   }
 
@@ -69,7 +71,7 @@ class Scene extends Component {
     const width = this.mount.clientWidth;
     const height = this.mount.clientHeight;
 
-    this.scene = new THREE.Scene()
+    this.scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
       75,
       width / height,
@@ -136,35 +138,6 @@ class Scene extends Component {
     camera.position.z = 4;
     this.scene.add(roof);
 
-    // adding vertices info. TODO: fix
-    const showVerticesInfo = true;
-    if (showVerticesInfo) {
-      const loader = new THREE.FontLoader();
-      loader.load('//raw.githubusercontent.com/mrdoob/three.js/master/examples/fonts/helvetiker_regular.typeface.json', function (font) {
-        console.log(font);
-        for (let i = 0; i < roof.geometry.vertices.length; i++) {
-          // console.log('verice!!!! ', this.roof.geometry.vertices[i]);
-          console.log('i ', i);
-          const textGeo = new THREE.TextGeometry(`${i}`, {
-            size: 0.1,
-            height: 0.2,
-            curveSegments: 6,
-            font: font,
-            style: "normal"
-          });
-
-          const textMaterial = new THREE.MeshLambertMaterial({color: 0xFF00FF});
-          const text = new THREE.Mesh(textGeo, textMaterial);
-
-          text.position.x = roof.geometry.vertices[i].x;
-          text.position.y = roof.geometry.vertices[i].y;
-          text.position.z = roof.geometry.vertices[i].z;
-          this.scene.add(text);
-
-        }
-      });
-    }
-
     // adding axes info
     const showAxesInfo = false;
     if (showAxesInfo) {
@@ -215,9 +188,46 @@ class Scene extends Component {
 
   componentDidUpdate(prevProps, prevState, snapshot) {
       this.setVertices();
-      // compute Normals
+      // showing vertices info
+      if (this.state.vertices) {
+          const loader = new THREE.FontLoader();
+          const roof = this.roof;
+          const scene = this.scene;
+          loader.load('//raw.githubusercontent.com/mrdoob/three.js/master/examples/fonts/helvetiker_regular.typeface.json', function (font) {
+              console.log(font);
+              for (let i = 0; i < roof.geometry.vertices.length; i++) {
+                  // console.log('verice!!!! ', this.roof.geometry.vertices[i]);
+                  // console.log('i ', i);
+
+                  const x = roof.geometry.vertices[i].x;
+                  const y = roof.geometry.vertices[i].y;
+                  const z = roof.geometry.vertices[i].z;
+                  const textGeo = new THREE.TextGeometry(
+                      `${i}`, {
+                      size: 0.1,
+                      height: 0.001,
+                      curveSegments: 6,
+                      font: font,
+                      style: "normal"
+                  });
+
+                  const textMaterial = new THREE.MeshLambertMaterial({color: 0xFF00FF});
+                  const text = new THREE.Mesh(textGeo, textMaterial);
+
+                  if ( x < 0) {
+                      text.position.x = x - 0.1;
+                  } else {
+                      text.position.x = x;
+                  }
+                  text.position.y = y;
+                  text.position.z = z;
+                  scene.add(text);
+              }
+          });
+      }
+      // // compute Normals
       this.geometry.computeVertexNormals();
-      // normalize the geometry
+      // // normalize the geometry
       this.geometry.normalize();
       this.renderScene()
   }
@@ -241,10 +251,13 @@ class Scene extends Component {
 
     this.frameId = window.requestAnimationFrame(this.animate);
     this.controls.update();
+    // dynamic geometry update
     this.roof.geometry.verticesNeedUpdate = true;
     this.roof.geometry.elementsNeedUpdate = true;
+    // wireframe
     this.material.wireframe = this.state.wireframe;
     this.material.color.setColorName(this.state.wireframe ? 'black' : 'lightslategray');
+    // edges
     const oldEdges = this.scene.getObjectByName('edges');
     this.scene.remove(oldEdges);
     const edges = new THREE.EdgesGeometry( this.geometry);
@@ -307,10 +320,20 @@ class Scene extends Component {
         <Row>
             <Col md="12">
                 <h1>Info</h1>
+            </Col>
+            <Col md="3">
                 <FormGroup check>
                     <Label check>
                         <Input name="wireframe" type="checkbox" id="wireframe" onChange={(e) => { this.setState({ wireframe: e.target.checked })}} />
                         Wireframe
+                    </Label>
+                </FormGroup>
+            </Col>
+            <Col md="3">
+                <FormGroup check>
+                    <Label check>
+                        <Input name="wireframe" type="checkbox" id="wireframe" onChange={(e) => { this.setState({ vertices: e.target.checked })}} />
+                        Vertices
                     </Label>
                 </FormGroup>
             </Col>
