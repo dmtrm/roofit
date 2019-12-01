@@ -80,7 +80,7 @@ class Scene extends Component {
            vertices.remove(vertices.children[i]);
       }
       if (this.state.showVertices) {
-          loader.load('/fonts/helvetiker_regular.typeface.json', function (font) {
+          loader.load('./fonts/helvetiker_regular.typeface.json', function (font) {
               for (let i = 0; i < roof.geometry.vertices.length; i++) {
                   const x = roof.geometry.vertices[i].x;
                   const y = roof.geometry.vertices[i].y;
