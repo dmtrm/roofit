@@ -26,7 +26,7 @@ class Scene extends Component {
 
        // show info toggles about geometry
        showWireframe: false,
-       showVertices: true,
+       showVertices: false,
        showGrid: false,
     }
   }
@@ -123,7 +123,7 @@ class Scene extends Component {
           grid.add(axesHelper);
 
           // grid
-          const gridXZ = new THREE.GridHelper(100, 10, new THREE.Color('blue'), new THREE.Color('blue'));
+          const gridXZ = new THREE.GridHelper(100, 10, new THREE.Color('red'), new THREE.Color('red'));
           grid.add(gridXZ);
 
           const gridXY = new THREE.GridHelper(100, 10, new THREE.Color('green'), new THREE.Color('green'));
