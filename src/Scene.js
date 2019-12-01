@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import * as THREE from 'three';
 import OrbitControls from 'three-orbitcontrols';
-import { Button, Form, FormGroup, Label, Input, FormText } from 'reactstrap';
+import { FormGroup, Label, Input } from 'reactstrap';
 import { Container, Row, Col } from 'reactstrap';
 
 
@@ -25,15 +25,12 @@ class Scene extends Component {
        smallRoofHeight: 200,
 
        // show info toggles about geometry
-       wireframe: false,
-       vertices: true,
+       showWireframe: false,
+       showVertices: true,
     }
   }
 
   setVertices() {
-    // create an array of vertices by way of
-    // and array of vector3 instances
-    const width = this.state.b;
 
     const bottomDepthOffset = 100 - this.state.f * 2;
     const topDepthOffset = 100 - this.state.f;
@@ -42,7 +39,10 @@ class Scene extends Component {
     const fRBottomRightOffset = fRBottomLeftOffset + this.state.d * 2;
     const fRTopOffset = fRBottomLeftOffset + this.state.d;
 
-    const vertices = [
+    // calculating z of vertice number 10 for correct vertice positioning during resizing
+    const z10 = 100 - this.state.f/(this.state.bigRoofHeight/this.state.smallRoofHeight);
+
+    this.vertices = [
       new THREE.Vector3(-100, -100,  100),  // 0
       new THREE.Vector3( this.state.b - 100, -100,  100),  // 1
       new THREE.Vector3(-100,  this.state.bigRoofHeight - 100,  topDepthOffset),  // 2
@@ -55,16 +55,63 @@ class Scene extends Component {
       new THREE.Vector3(fRBottomRightOffset,  -100, this.state.a + 100),  // 7
       new THREE.Vector3(fRTopOffset,  this.state.smallRoofHeight - 100, this.state.a + 100),  // 8
       new THREE.Vector3(fRBottomLeftOffset,  -100, 100),  // 9
-      new THREE.Vector3(fRTopOffset,  this.state.smallRoofHeight - 100, topDepthOffset),  // 10
+      new THREE.Vector3(fRTopOffset,  this.state.smallRoofHeight - 100, z10),  // 10
       new THREE.Vector3(fRBottomRightOffset,  -100, 100),  // 11
 
-      // hacky way to display some faces
-      new THREE.Vector3(fRBottomLeftOffset,  -100, 102),  // 12
-      new THREE.Vector3(fRTopOffset,  this.state.smallRoofHeight - 100, topDepthOffset+2),  // 13
-      new THREE.Vector3(fRBottomRightOffset,  -100, 102),  // 14
     ];
-    this.geometry.vertices = vertices;
+    this.geometry.vertices = this.vertices;
     this.geometry.verticesNeedUpdate = true;
+  }
+
+  displayVertices() {
+      const loader = new THREE.FontLoader();
+      const roof = this.roof;
+      const scene = this.scene;
+      let vertices = scene.getObjectByName('verticesInfo');
+      if (!vertices) {
+          vertices = new THREE.Object3D();
+          vertices.name = 'verticesInfo';
+          scene.add(vertices);
+      }
+      // removing old vertices
+      for (let i = vertices.children.length - 1; i >= 0; i--) {
+           console.log(vertices.children[i]);
+           vertices.remove(vertices.children[i]);
+      }
+      if (this.state.showVertices) {
+          loader.load('/fonts/helvetiker_regular.typeface.json', function (font) {
+              for (let i = 0; i < roof.geometry.vertices.length; i++) {
+                  const x = roof.geometry.vertices[i].x;
+                  const y = roof.geometry.vertices[i].y;
+                  const z = roof.geometry.vertices[i].z;
+                  const textGeo = new THREE.TextGeometry(
+                      `${i}`, {
+                      size: 0.1,
+                      height: 0.001,
+                      curveSegments: 6,
+                      font: font,
+                      style: "normal"
+                  });
+
+                  const textMaterial = new THREE.MeshLambertMaterial({color: 'red'});
+                  const text = new THREE.Mesh(textGeo, textMaterial);
+
+                  if ( x < 0) {
+                      text.position.x = x - 0.1;
+                  } else {
+                      text.position.x = x;
+                  }
+                  text.position.y = y;
+                  text.position.z = z;
+                  vertices.add(text);
+                  // scene.add(text);
+              }
+              console.log('vertices ', scene.getObjectByName('verticesInfo'))
+              if (!scene.getObjectByName('verticesInfo')) {
+                  scene.add(vertices);
+              }
+         });
+      }
   }
 
   componentDidMount() {
@@ -79,12 +126,7 @@ class Scene extends Component {
       1000
     );
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true  });
-    const material = new THREE.MeshBasicMaterial({ color: 'lightslategray' });
-    const colors = [
-    new THREE.Color(0xff0000),
-    new THREE.Color(0x00ff00),
-    new THREE.Color(0x0000ff)];
-
+    const material = new THREE.MeshBasicMaterial({ color: 'lightslategray', side: THREE.FrontSide });
 
     this.geometry = new THREE.Geometry()
 
@@ -124,8 +166,6 @@ class Scene extends Component {
       // back
       new THREE.Face3(11, 10, 9),
 
-      // hacky way to display some faces
-       new THREE.Face3(12, 13, 14),
     );
 
        // compute Normals
@@ -170,9 +210,9 @@ class Scene extends Component {
 
 
 	var light = new THREE.AmbientLight( 0x404040 ); // soft white light
-    this.scene.add( light );
+    this.scene.add(light);
 
-    renderer.setSize(width, height)
+    renderer.setSize(width, height);
 
     // this.scene = scene
     this.camera = camera;
@@ -188,43 +228,7 @@ class Scene extends Component {
 
   componentDidUpdate(prevProps, prevState, snapshot) {
       this.setVertices();
-      // showing vertices info
-      if (this.state.vertices) {
-          const loader = new THREE.FontLoader();
-          const roof = this.roof;
-          const scene = this.scene;
-          loader.load('//raw.githubusercontent.com/mrdoob/three.js/master/examples/fonts/helvetiker_regular.typeface.json', function (font) {
-              console.log(font);
-              for (let i = 0; i < roof.geometry.vertices.length; i++) {
-                  // console.log('verice!!!! ', this.roof.geometry.vertices[i]);
-                  // console.log('i ', i);
-
-                  const x = roof.geometry.vertices[i].x;
-                  const y = roof.geometry.vertices[i].y;
-                  const z = roof.geometry.vertices[i].z;
-                  const textGeo = new THREE.TextGeometry(
-                      `${i}`, {
-                      size: 0.1,
-                      height: 0.001,
-                      curveSegments: 6,
-                      font: font,
-                      style: "normal"
-                  });
-
-                  const textMaterial = new THREE.MeshLambertMaterial({color: 0xFF00FF});
-                  const text = new THREE.Mesh(textGeo, textMaterial);
-
-                  if ( x < 0) {
-                      text.position.x = x - 0.1;
-                  } else {
-                      text.position.x = x;
-                  }
-                  text.position.y = y;
-                  text.position.z = z;
-                  scene.add(text);
-              }
-          });
-      }
+      this.displayVertices();
       // // compute Normals
       this.geometry.computeVertexNormals();
       // // normalize the geometry
@@ -247,6 +251,85 @@ class Scene extends Component {
     cancelAnimationFrame(this.frameId);
   }
 
+  drawOutline() {
+     const blackOutline = new THREE.LineBasicMaterial( { color: 'black', linewidth: 3 } );
+     // variables contain vertices coordinates
+     // small roof edges
+     const edgesSmallRoofGeometry = new THREE.Geometry();
+     edgesSmallRoofGeometry.vertices.push(
+        this.vertices[7],
+        this.vertices[8],
+        this.vertices[6],
+        this.vertices[7],
+        // changing z of vertices 10, 11 to make outline more prominent in this region
+        new THREE.Vector3(this.vertices[11].x, this.vertices[11].y, this.vertices[11].z + 0.01),
+        new THREE.Vector3(this.vertices[10].x, this.vertices[10].y, this.vertices[10].z + 0.01),
+        this.vertices[10],
+        this.vertices[8],
+        // changing z of vertices 10, 9 to make outline more prominent in this region
+        new THREE.Vector3(this.vertices[10].x, this.vertices[10].y, this.vertices[10].z + 0.01),
+        new THREE.Vector3(this.vertices[9].x, this.vertices[9].y, this.vertices[9].z + 0.01),
+        this.vertices[6],
+     );
+     const oldSmallRoofEdges = this.scene.getObjectByName('smallRoofEdges');
+     this.scene.remove(oldSmallRoofEdges);
+     const smallRoofEdges = new THREE.Line(edgesSmallRoofGeometry, blackOutline);
+     smallRoofEdges.name = 'smallRoofEdges';
+     this.scene.add(smallRoofEdges);
+
+     // big roof edges
+     const edgesBigRoofGeometryB = new THREE.Geometry();
+     edgesBigRoofGeometryB.vertices.push(
+        this.vertices[9],
+        this.vertices[0],
+        this.vertices[4],
+        this.vertices[5],
+        this.vertices[1],
+        this.vertices[11],
+     );
+     const oldBigRoofEdgesB = this.scene.getObjectByName('bigRoofEdgesB');
+     this.scene.remove(oldBigRoofEdgesB);
+     const bigRoofEdgesBase = new THREE.Line(edgesBigRoofGeometryB, blackOutline);
+     bigRoofEdgesBase.name = 'bigRoofEdgesB';
+     this.scene.add(bigRoofEdgesBase);
+
+     const edgesBigRoofGeometryL = new THREE.Geometry();
+     edgesBigRoofGeometryL.vertices.push(
+        this.vertices[0],
+        this.vertices[2],
+        this.vertices[4],
+     );
+     const oldBigRoofEdgesL = this.scene.getObjectByName('bigRoofEdgesL');
+     this.scene.remove(oldBigRoofEdgesL);
+     const bigRoofEdgesL = new THREE.Line(edgesBigRoofGeometryL, blackOutline);
+     bigRoofEdgesL.name = 'bigRoofEdgesL';
+     this.scene.add(bigRoofEdgesL);
+
+     const edgesBigRoofGeometryR = new THREE.Geometry();
+     edgesBigRoofGeometryR.vertices.push(
+        this.vertices[1],
+        this.vertices[3],
+        this.vertices[5],
+     );
+     const oldBigRoofEdgesR = this.scene.getObjectByName('bigRoofEdgesR');
+     this.scene.remove(oldBigRoofEdgesR);
+     const bigRoofEdgesR = new THREE.Line(edgesBigRoofGeometryR, blackOutline);
+     bigRoofEdgesR.name = 'bigRoofEdgesR';
+     this.scene.add(bigRoofEdgesR);
+
+     const edgesBigRoofGeometryT = new THREE.Geometry();
+     edgesBigRoofGeometryT.vertices.push(
+        this.vertices[3],
+        this.vertices[2],
+     );
+     const oldBigRoofEdgesT = this.scene.getObjectByName('bigRoofEdgesT');
+     this.scene.remove(oldBigRoofEdgesT);
+     const bigRoofEdgesT = new THREE.Line(edgesBigRoofGeometryT, blackOutline);
+     bigRoofEdgesT.name = 'bigRoofEdgesT';
+     this.scene.add(bigRoofEdgesT);
+
+  }
+
   animate() {
 
     this.frameId = window.requestAnimationFrame(this.animate);
@@ -255,17 +338,11 @@ class Scene extends Component {
     this.roof.geometry.verticesNeedUpdate = true;
     this.roof.geometry.elementsNeedUpdate = true;
     // wireframe
-    this.material.wireframe = this.state.wireframe;
-    this.material.color.setColorName(this.state.wireframe ? 'black' : 'lightslategray');
-    // edges
-    const oldEdges = this.scene.getObjectByName('edges');
-    this.scene.remove(oldEdges);
-    const edges = new THREE.EdgesGeometry( this.geometry);
-    const line = new THREE.LineSegments( edges, new THREE.LineBasicMaterial( { color: 'black', linewidth: 3, linejoin: 'bevel' } ) );
-    line.name = 'edges';
-    this.scene.add(line);
+    this.material.wireframe = this.state.showWireframe;
+    this.material.color.setColorName(this.state.showWireframe ? 'black' : 'lightslategray');
 
-    this.renderScene()
+    this.drawOutline();
+    this.renderScene();
   }
 
   renderScene() {
@@ -324,7 +401,7 @@ class Scene extends Component {
             <Col md="3">
                 <FormGroup check>
                     <Label check>
-                        <Input name="wireframe" type="checkbox" id="wireframe" onChange={(e) => { this.setState({ wireframe: e.target.checked })}} />
+                        <Input name="wireframe" type="checkbox" id="wireframe" onChange={(e) => { this.setState({ showWireframe: e.target.checked })}} />
                         Wireframe
                     </Label>
                 </FormGroup>
@@ -332,7 +409,7 @@ class Scene extends Component {
             <Col md="3">
                 <FormGroup check>
                     <Label check>
-                        <Input name="wireframe" type="checkbox" id="wireframe" onChange={(e) => { this.setState({ vertices: e.target.checked })}} />
+                        <Input name="wireframe" type="checkbox" id="wireframe" onChange={(e) => { this.setState({ showVertices: e.target.checked })}} />
                         Vertices
                     </Label>
                 </FormGroup>
