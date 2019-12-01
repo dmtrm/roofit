@@ -27,6 +27,7 @@ class Scene extends Component {
        // show info toggles about geometry
        showWireframe: false,
        showVertices: true,
+       showGrid: false,
     }
   }
 
@@ -43,6 +44,7 @@ class Scene extends Component {
     const z10 = 100 - this.state.f/(this.state.bigRoofHeight/this.state.smallRoofHeight);
 
     this.vertices = [
+      // big roof
       new THREE.Vector3(-100, -100,  100),  // 0
       new THREE.Vector3( this.state.b - 100, -100,  100),  // 1
       new THREE.Vector3(-100,  this.state.bigRoofHeight - 100,  topDepthOffset),  // 2
@@ -50,7 +52,7 @@ class Scene extends Component {
       new THREE.Vector3(-100, -100, bottomDepthOffset),  // 4
       new THREE.Vector3( this.state.b - 100, -100, bottomDepthOffset),  // 5
 
-      // front pyramid
+      // small roof
       new THREE.Vector3(fRBottomLeftOffset,  -100, this.state.a + 100),  // 6
       new THREE.Vector3(fRBottomRightOffset,  -100, this.state.a + 100),  // 7
       new THREE.Vector3(fRTopOffset,  this.state.smallRoofHeight - 100, this.state.a + 100),  // 8
@@ -69,13 +71,12 @@ class Scene extends Component {
       const scene = this.scene;
       let vertices = scene.getObjectByName('verticesInfo');
       if (!vertices) {
-          vertices = new THREE.Object3D();
+          vertices = new THREE.Group();
           vertices.name = 'verticesInfo';
           scene.add(vertices);
       }
       // removing old vertices
       for (let i = vertices.children.length - 1; i >= 0; i--) {
-           console.log(vertices.children[i]);
            vertices.remove(vertices.children[i]);
       }
       if (this.state.showVertices) {
@@ -104,13 +105,37 @@ class Scene extends Component {
                   text.position.y = y;
                   text.position.z = z;
                   vertices.add(text);
-                  // scene.add(text);
-              }
-              console.log('vertices ', scene.getObjectByName('verticesInfo'))
-              if (!scene.getObjectByName('verticesInfo')) {
-                  scene.add(vertices);
               }
          });
+      }
+  }
+
+  displayGrid() {
+      let grid = this.scene.getObjectByName('grid');
+      if (!grid) {
+          grid = new THREE.Group();
+          grid.name = 'grid';
+          this.scene.add(grid);
+      }
+      if (this.state.showGrid) {
+          const axesHelper = new THREE.AxesHelper(200);
+          axesHelper.name = 'grid';
+          grid.add(axesHelper);
+
+          // grid
+          const gridXZ = new THREE.GridHelper(100, 10, new THREE.Color('blue'), new THREE.Color('blue'));
+          grid.add(gridXZ);
+
+          const gridXY = new THREE.GridHelper(100, 10, new THREE.Color('green'), new THREE.Color('green'));
+          gridXY.rotation.x = Math.PI / 2;
+
+          grid.add(gridXY);
+          const gridYZ = new THREE.GridHelper(100, 10, new THREE.Color('blue'), new THREE.Color('blue'));
+          gridYZ.rotation.z = Math.PI / 2;
+          grid.add(gridYZ);
+      } else {
+         const grid = this.scene.getObjectByName('grid');
+         this.scene.remove(grid);
       }
   }
 
@@ -125,10 +150,10 @@ class Scene extends Component {
       0.1,
       1000
     );
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true  });
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     const material = new THREE.MeshBasicMaterial({ color: 'lightslategray', side: THREE.FrontSide });
 
-    this.geometry = new THREE.Geometry()
+    this.geometry = new THREE.Geometry();
 
     this.setVertices();
 
@@ -139,17 +164,15 @@ class Scene extends Component {
       // right
       new THREE.Face3(1, 5, 3),
       // back
-      // new THREE.Face3(4, 5, 7),
       new THREE.Face3(5, 4, 3),
       new THREE.Face3(4, 2, 3),
 
-      // new THREE.Face3(4, 2, 6),
       new THREE.Face3(4, 0, 2),
       // bottom
       new THREE.Face3(4, 1, 0),
       new THREE.Face3(4, 5, 1),
 
-      // front pyramid
+      // small roof
       // front
       new THREE.Face3(6, 7, 8),
       // right
@@ -177,26 +200,6 @@ class Scene extends Component {
     const roof = new THREE.Mesh(this.geometry, material);
     camera.position.z = 4;
     this.scene.add(roof);
-
-    // adding axes info
-    const showAxesInfo = false;
-    if (showAxesInfo) {
-      const axesHelper = new THREE.AxesHelper( 200 );
-      this.scene.add(axesHelper);
-
-      // grid
-      var gridXZ = new THREE.GridHelper(100, 10, new THREE.Color(0x006600), new THREE.Color(0x006600) );
-      this.scene.add(gridXZ);
-
-      var gridXY = new THREE.GridHelper(100, 10, new THREE.Color(0x000066), new THREE.Color(0x000066));
-      gridXY.rotation.x = Math.PI/2;
-
-      this.scene.add(gridXY);
-      var gridYZ = new THREE.GridHelper(100, 10, new THREE.Color(0x660000), new THREE.Color(0x660000));
-      gridYZ.rotation.z = Math.PI/2;
-
-      this.scene.add(gridYZ);
-    }
 
     const directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5);
     this.scene.add( directionalLight );
@@ -229,11 +232,12 @@ class Scene extends Component {
   componentDidUpdate(prevProps, prevState, snapshot) {
       this.setVertices();
       this.displayVertices();
+      this.displayGrid();
       // // compute Normals
       this.geometry.computeVertexNormals();
       // // normalize the geometry
       this.geometry.normalize();
-      this.renderScene()
+      this.renderScene();
   }
 
   componentWillUnmount() {
@@ -398,19 +402,27 @@ class Scene extends Component {
             <Col md="12">
                 <h1>Info</h1>
             </Col>
-            <Col md="3">
+            <Col md="2">
                 <FormGroup check>
                     <Label check>
-                        <Input name="wireframe" type="checkbox" id="wireframe" onChange={(e) => { this.setState({ showWireframe: e.target.checked })}} />
+                        <Input name="wireframe" type="checkbox" onChange={(e) => { this.setState({ showWireframe: e.target.checked })}} />
                         Wireframe
                     </Label>
                 </FormGroup>
             </Col>
-            <Col md="3">
+            <Col md="2">
                 <FormGroup check>
                     <Label check>
-                        <Input name="wireframe" type="checkbox" id="wireframe" onChange={(e) => { this.setState({ showVertices: e.target.checked })}} />
+                        <Input name="vertices" type="checkbox"  onChange={(e) => { this.setState({ showVertices: e.target.checked })}} />
                         Vertices
+                    </Label>
+                </FormGroup>
+            </Col>
+            <Col md="2">
+                <FormGroup check>
+                    <Label check>
+                        <Input name="grid" type="checkbox" onChange={(e) => { this.setState({ showGrid: e.target.checked })}} />
+                        Grid
                     </Label>
                 </FormGroup>
             </Col>
